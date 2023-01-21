@@ -1,0 +1,152 @@
+<nav class="navbar bg-dark" data-bs-theme="dark">
+  <div class="container-fluid">
+    <span class="navbar-brand mb-0 h1" style="color: #ffff;">POKEMON</span>
+    <mat-icon matSuffix (click)="busqueda()" style="cursor:pointer; color: #ffff;">search</mat-icon>
+  </div>
+</nav>
+
+<div class="alert" *ngIf="alertaPokemon">
+  <span class="closebtn" (click)="alerta()">&times;</span>
+  Pokemon no encontrado
+</div>
+
+<div class="content-fluid mb-5" role="main">
+
+  <div class="card-container p-3">
+    <div class="row">
+      <div class="col-md-6 col-sm-12 p-5">
+        <div class="col-12">
+          <h4 class="card-title">Listado de Pokemons</h4>
+        </div>
+        <mat-form-field class="mt-2 text-muted" style="float: right;">
+          <mat-label>Buscar</mat-label>
+          <input type="text" placeholder="Buscar.." name="search"
+            aria-label="Number"
+            matInput
+            (keyup)="applyFilter($event)"
+            (input)="filterControl()"
+            [formControl]="controlPokemon"
+            [matAutocomplete]="auto">
+            <mat-icon matSuffix>search</mat-icon>
+            <mat-autocomplete #auto="matAutocomplete" >
+            <mat-option *ngFor="let item of control" [value]="item.name" (onSelectionChange)="getSelectPokemon(item.name)">
+              {{ item.name }}
+            </mat-option>
+          </mat-autocomplete>
+        </mat-form-field>
+        <div class="mat-elevation-z8">
+          <table mat-table [dataSource]="dataSource">
+        
+            <ng-container matColumnDef="nombre">
+              <th mat-header-cell *matHeaderCellDef> Nombre </th>
+              <td mat-cell *matCellDef="let element"> {{element.name}} </td>
+            </ng-container>
+        
+            <ng-container matColumnDef="ver">
+              <th mat-header-cell *matHeaderCellDef> Accion </th>
+              <td mat-cell *matCellDef="let element"> 
+                <mat-icon matSuffix (click)='getSelectPokemon(element.name)' style="cursor:pointer; width: 50px;">remove_red_eye</mat-icon>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+          </table>
+        
+          <mat-paginator 
+                        *ngIf="!buscando"
+                        #pokemonPaginator="matPaginator"
+                        [pageSize]="10" 
+                        [length]="total"
+                        (page)="getServerData($event)"
+                        aria-label="Select page of periodic elements">
+          </mat-paginator>
+          <mat-paginator 
+                        *ngIf="buscando"
+                        #pokemonPaginator="matPaginator"
+                        [pageSize]="10" 
+                        [length]="total"
+                        aria-label="Select page of periodic elements">
+          </mat-paginator>
+        </div>        
+      </div>
+      <div class="col-md-6 col-sm-12 p-5" *ngIf="selectPokemons" id="detalle">
+        <div class="col-12">
+          <h4 class="card-title">Detalles del Pokemon</h4>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Nombre</label>
+          <input class="form-control" type="text" [(ngModel)]="selectPokemons.forms[0].name" disabled style="border-radius: 0px;">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Especie</label>
+          <input class="form-control" type="text" [(ngModel)]="selectPokemons.species.name" disabled style="border-radius: 0px;">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Tipo</label>
+          <input class="form-control" type="text" [(ngModel)]="selectPokemons.types[0].type.name" disabled style="border-radius: 0px;">
+        </div>
+        <div class="col-md-12">
+          <div class="container-img">
+            <img [src]="selectPokemons.sprites.other.dream_world.front_default" class="rounded mx-auto d-block" style="width: 100%; max-width: 300px;">
+          </div>
+        </div>
+      </div>
+      <div class="col-12 p-5">
+        <div class="col-12">
+          <h4 class="card-title">Estadisticas de Pokemons por las letras del alfabeto</h4>
+        </div>
+        <div class="mat-elevation-z8">
+          <table mat-table [dataSource]="dataSourceAlfabeto">
+        
+            <ng-container matColumnDef="id">
+              <th mat-header-cell *matHeaderCellDef> Posicion </th>
+              <td mat-cell *matCellDef="let element"> {{element.id}} </td>
+            </ng-container>
+        
+            <ng-container matColumnDef="letra">
+              <th mat-header-cell *matHeaderCellDef> Letra </th>
+              <td mat-cell *matCellDef="let element"> {{element.letra.toUpperCase()}} </td>
+            </ng-container>
+        
+            <ng-container matColumnDef="cantidad">
+              <th mat-header-cell *matHeaderCellDef> Cantidad </th>
+              <td mat-cell *matCellDef="let element"> {{element.cantidad}} </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumnsAlfabeto"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumnsAlfabeto;"></tr>
+          </table>
+        
+          <mat-paginator 
+                        #alfabetoPaginator="matPaginator"
+                        [pageSize]="10"
+                        [length]="26"
+                        aria-label="Select page of periodic elements">
+          </mat-paginator>
+        </div>        
+      </div>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="mostrar" class="overlay">
+  <span class="closebtn" (click)="busqueda()" title="Close Overlay">x</span>
+  <div class="overlay-content row p-5">
+    <div class="col-12 p-5">
+      <input type="text" placeholder="Buscar.." name="search"
+      aria-label="Number"
+      matInput
+      (input)="filterControl()"
+      [formControl]="controlPokemon"
+      [matAutocomplete]="auto">
+      <mat-autocomplete #auto="matAutocomplete" >
+        <mat-option *ngFor="let item of control" [value]="item.name"  (onSelectionChange)="getSelectPokemon(item.name)">
+          {{ item.name }}
+        </mat-option>
+      </mat-autocomplete>
+    </div>
+  </div>
+</div>
+
+<router-outlet></router-outlet>
